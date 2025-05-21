@@ -34,13 +34,13 @@ func main() {
 	bar := NewProgress(total / ITEMS_PER_PAGE)
 
 	var wg sync.WaitGroup
-	c := make(chan []Student)
+	studentsChannel := make(chan []Student)
 
 	for range CLUSTER_SIZE {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for students := range c {
+			for students := range studentsChannel {
 				if err := p.Insert(students); err != nil {
 					fmt.Printf("failed to insert, err: %s\n", err.Error())
 					break
@@ -51,11 +51,11 @@ func main() {
 		}()
 	}
 
-	for ss := range m.GetAllPagedData(ITEMS_PER_PAGE) {
-		c <- ss
+	for studentsPage := range m.GetAllPagedData(ITEMS_PER_PAGE) {
+		studentsChannel <- studentsPage
 	}
 
-	close(c)
+	close(studentsChannel)
 	wg.Wait()
 
 	totalPostgres, err := p.Count()
