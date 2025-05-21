@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,12 +15,14 @@ type PostGres struct {
 }
 
 func NewPostGres() *PostGres {
-	conn, err := pgxpool.New(context.Background(), "postgres://erickwendel:mypassword@localhost:5432/school")
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	conn, err := pgxpool.New(ctx, "postgres://erickwendel:mypassword@localhost:5432/school")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)
 	}
-	conn.Exec(context.Background(), "DELETE FROM students")
+	conn.Exec(ctx, "DELETE FROM students")
 	return &PostGres{
 		conn: conn,
 	}

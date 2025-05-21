@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -20,6 +21,17 @@ func NewMongoDB() *MongoDB {
 	if err != nil {
 		panic(err)
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	var result bson.M
+	if err := client.
+		Database("school").
+		RunCommand(ctx, bson.D{{Key: "ping", Value: 1}}).
+		Decode(&result); err != nil {
+		panic(err)
+	}
+
 	return &MongoDB{
 		students: client.Database("school").Collection("students"),
 		client:   client,

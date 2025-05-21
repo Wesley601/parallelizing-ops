@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"sync"
 	"time"
@@ -8,8 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-const ITEMS_PER_PAGE = 4000
-const CLUSTER_SIZE = 99
+const DEFAULT_ITEMS_PER_PAGE = 4000
+const DEFAULT_CLUSTER_SIZE = 99
 
 type Student struct {
 	ID           int
@@ -21,6 +22,10 @@ type Student struct {
 }
 
 func main() {
+	clusterSize := flag.Int("cluster-size", DEFAULT_CLUSTER_SIZE, "")
+	itemsPerPage := flag.Int("per-page", DEFAULT_ITEMS_PER_PAGE, "")
+	flag.Parse()
+
 	m := NewMongoDB()
 	defer m.Close()
 	p := NewPostGres()
@@ -31,12 +36,12 @@ func main() {
 		return
 	}
 
-	bar := NewProgress(total / ITEMS_PER_PAGE)
+	bar := NewProgress(total / *itemsPerPage)
 
 	var wg sync.WaitGroup
 	studentsChannel := make(chan []Student)
 
-	for range CLUSTER_SIZE {
+	for range *clusterSize {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -51,7 +56,7 @@ func main() {
 		}()
 	}
 
-	for studentsPage := range m.GetAllPagedData(ITEMS_PER_PAGE) {
+	for studentsPage := range m.GetAllPagedData(int64(*itemsPerPage)) {
 		studentsChannel <- studentsPage
 	}
 
