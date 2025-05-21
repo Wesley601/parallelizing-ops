@@ -1,16 +1,19 @@
-# Parallelizing Node.js operations with child process
+# Parallelizing comparison, NodeJs child process vs Golang Coroutines
 
-Example of [how to Migrate 1M items from MongoDB to Postgres in just a few minutes](https://youtu.be/EnK8-x8L9TY) using Node.js child process
-
+This is a comparison based on video [how to Migrate 1M items from MongoDB to Postgres in just a few minutes](https://youtu.be/EnK8-x8L9TY).
 
 ## Running
 
 You'll need to install Docker and Docker compose to be able to spin up the DBs instances, after that run:
 - docker-compose up -d
+
+### for node
+- cd node-version
 - npm ci
 - npm run seed
 - npm start
 
-## Errors?
-
-In case you got an error of too many processes open, try decreasing the const [CLUSTER_SIZE](https://github.com/ErickWendel/parallelizing-nodejs-ops/blob/main/src/index.js#L8C1-L8C24) variable
+### for Golang
+- cd go-version
+- go build -o main
+- ./main
