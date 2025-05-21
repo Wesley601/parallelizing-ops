@@ -1,7 +1,7 @@
-import { initialize } from "./cluster.js"
-import { getMongoConnection, getPostgresConnection } from './db.js'
 import cliProgress from 'cli-progress'
 import { setTimeout } from 'node:timers/promises'
+import { initialize } from "./cluster.js"
+import { getMongoConnection, getPostgresConnection } from './db.js'
 const mongoDB = await getMongoConnection()
 const postgresDB = await getPostgresConnection()
 const ITEMS_PER_PAGE = 4000
@@ -30,17 +30,17 @@ const progress = new cliProgress.SingleBar({
     clearOnComplete: false,
 }, cliProgress.Presets.shades_classic);
 
-progress.start(total, 0);
+progress.start(total/ITEMS_PER_PAGE, 0);
 let totalProcessed = 0
 const cp = initialize(
     {
         backgroundTaskFile: TASK_FILE,
         clusterSize: CLUSTER_SIZE,
-        amountToBeProcessed: total,
+        amountToBeProcessed: total/ITEMS_PER_PAGE,
         async onMessage(message) {
             progress.increment()
 
-            if (++totalProcessed !== total) return
+            if (++totalProcessed !== total/ITEMS_PER_PAGE) return
             // console.log(`all ${amountToBeProcessed} processed! Exiting...`)
             progress.stop()
             cp.killAll()
@@ -58,4 +58,3 @@ await setTimeout(1000)
 for await (const data of getAllPagedData(ITEMS_PER_PAGE)) {
     cp.sendToChild(data)
 }
-
