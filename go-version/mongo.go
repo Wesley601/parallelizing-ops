@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"iter"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -44,8 +45,8 @@ func (m *MongoDB) Close() {
 	}
 }
 
-func (m *MongoDB) GetAllPagedData(itemsPerPage int64) func(func(students []Student) bool) {
-	return func(yeld func(students []Student) bool) {
+func (m *MongoDB) GetAllPagedData(itemsPerPage int64) iter.Seq[[]Student] {
+	return func(yield func(students []Student) bool) {
 		students := make([]Student, 0, itemsPerPage)
 		var skip int64
 
@@ -66,7 +67,7 @@ func (m *MongoDB) GetAllPagedData(itemsPerPage int64) func(func(students []Stude
 				return
 			}
 
-			if !yeld(students) {
+			if !yield(students) {
 				return
 			}
 
